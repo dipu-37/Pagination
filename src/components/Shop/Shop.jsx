@@ -8,14 +8,24 @@ import { Link, useLoaderData } from 'react-router-dom';
 const Shop = () => {
     const [products, setProducts] = useState([]);
     const [cart, setCart] = useState([])
-    const {count} = useLoaderData();
+    const { count } = useLoaderData();
+    const [itemperPage, setitemperPage] = useState(10);
+    const [currentPage, setCurrentPage] = useState(0);
     console.log(count)
+    const numberofPage = Math.ceil(count / itemperPage);
+    // const pages =[];
+    // for(let i=0; i<itemperPage;i++){
+    //     pages.push(i)
+    // }
+    // console.log(pages)
+
+    const pages = [...Array(numberofPage).keys()];
 
     useEffect(() => {
-        fetch('http://localhost:5000/products')
+        fetch(`http://localhost:5000/products?page=${currentPage}&size=${itemperPage}`)
             .then(res => res.json())
             .then(data => setProducts(data))
-    }, []);
+    }, [currentPage]);
 
     useEffect(() => {
         const storedCart = getShoppingCart();
@@ -62,7 +72,22 @@ const Shop = () => {
         setCart([]);
         deleteShoppingCart();
     }
-
+    const handleItemPerPage = e => {
+        const val = parseInt(e.target.value)
+        setitemperPage(val)
+        console.log(e.target.value);
+        setCurrentPage(0);
+    }
+    const handlePreviousPage = () => {
+        if (currentPage > 0) {
+            setCurrentPage(currentPage - 1)
+        }
+    }
+    const handleNextPage = () => {
+        if (currentPage < pages.length) {
+            setCurrentPage(currentPage + 1)
+        }
+    }
     return (
         <div className='shop-container'>
             <div className="products-container">
@@ -83,6 +108,30 @@ const Shop = () => {
                         <button className='btn-proceed'>Review Order</button>
                     </Link>
                 </Cart>
+            </div>
+            <div className='pagination'>
+                <p>current Page :{currentPage} </p>
+                <button onClick={handlePreviousPage}>prev</button>
+                {
+                    pages.map(page =>
+                        <button
+                            className={currentPage === page ? 'selected' : undefined}
+                            onClick={() => setCurrentPage(page)}
+                            key={page}
+                        >
+                            {page}
+                        </button>
+                    )
+                }
+
+                <button onClick={handleNextPage}>Next</button>
+
+                <select value={itemperPage} onChange={handleItemPerPage} name="" id="">
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                </select>
             </div>
         </div>
     );
